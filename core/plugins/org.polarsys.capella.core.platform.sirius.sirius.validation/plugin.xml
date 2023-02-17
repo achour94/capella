@@ -95,7 +95,7 @@
             <constraint
                   class="org.polarsys.capella.core.platform.sirius.sirius.validation.ddiagram.CapellaElementInDescriptionNameCheck"
                   id="I_22"
-                  isEnabledByDefault="false"
+                  isEnabledByDefault="true"
                   lang="java"
                   mode="Batch"
                   name="I_22 - HyperLink to capella element or diagram name check"
@@ -104,9 +104,6 @@
                <message>
                   {0}
                </message>
-               <target
-                     class="CapellaElement">
-               </target>
                <description>
                   This rule ensures that hyperLinks to capella elements or diagrams names are up to date.
                </description>
@@ -114,7 +111,7 @@
             <constraint
                   class="org.polarsys.capella.core.platform.sirius.sirius.validation.ddiagram.CapellaElementInDescriptionExistanceCheck"
                   id="I_23"
-                  isEnabledByDefault="false"
+                  isEnabledByDefault="true"
                   lang="java"
                   mode="Batch"
                   name="I_23 - HyperLink to capella element or diagram existance check"
