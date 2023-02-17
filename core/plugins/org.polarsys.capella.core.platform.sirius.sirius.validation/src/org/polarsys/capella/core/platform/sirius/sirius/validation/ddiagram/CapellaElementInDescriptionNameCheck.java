@@ -144,7 +144,7 @@ public class CapellaElementInDescriptionNameCheck extends AbstractValidationRule
               value = value.replaceAll("\\s+", " "); //$NON-NLS-1$//$NON-NLS-2$
               if (!name.equals(value)) {
                 String message = "(Hyperlink) The model element named \"" + value
-                    + "\" (found in the rich text description of the element " + getName(element)
+                    + "\" (found in the rich text description of " + getName(element)
                     + ") is not up to date.";  
                 failureMessages.add(ConstraintStatus.createStatus(ctx, element, ctx.getResultLocus(), "{0}", message));
                 
