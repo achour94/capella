@@ -13,6 +13,8 @@
 package org.polarsys.capella.core.platform.sirius.sirius.validation.ddiagram;
 
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.SAXParser;
@@ -22,9 +24,11 @@ import org.apache.log4j.Logger;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.validation.IValidationContext;
+import org.eclipse.emf.validation.model.ConstraintStatus;
 import org.polarsys.capella.common.tools.report.config.registry.ReportManagerRegistry;
 import org.polarsys.capella.common.tools.report.util.IReportManagerDefaultComponents;
 import org.polarsys.capella.core.data.capellacore.CapellaElement;
+import org.polarsys.capella.core.model.helpers.CapellaElementExt;
 import org.polarsys.capella.core.model.utils.saxparser.IConstantValidation;
 import org.polarsys.capella.core.model.utils.saxparser.SaxParserHelper;
 import org.polarsys.capella.core.validation.rule.AbstractValidationRule;
@@ -41,10 +45,13 @@ public class CapellaElementInDescriptionExistanceCheck extends AbstractValidatio
 
   public final class LocalDefaultHandler extends DefaultHandler {
     private final CapellaElement capellaElement;
-    private final IStatus[] result;
+    private final List<IStatus> result;
     private final IValidationContext ctx;
+    private boolean isElementExist = true;
+    private String elementId;
+    private StringBuilder elementValue = new StringBuilder();
 
-    public LocalDefaultHandler(CapellaElement capellaElement, IStatus[] result, IValidationContext ctx) {
+    public LocalDefaultHandler(CapellaElement capellaElement, List<IStatus> result, IValidationContext ctx) {
       this.capellaElement = capellaElement;
       this.result = result;
       this.ctx = ctx;
@@ -54,6 +61,9 @@ public class CapellaElementInDescriptionExistanceCheck extends AbstractValidatio
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
       // if a tag : look for hyperLink to capella element or diagram
       if (qName.equalsIgnoreCase(IConstantValidation.XHTML_A_TAG)) {
+    	elementValue = new StringBuilder(0);
+    	elementId = "";
+    	isElementExist = true;
         for (int i = 0; i < attributes.getLength(); i++) {
           // above filter state the image source (which could be relative or absolute path)
           String attValue = attributes.getValue(i);
@@ -67,13 +77,40 @@ public class CapellaElementInDescriptionExistanceCheck extends AbstractValidatio
 
             if (null == eObject) {
               // element does not exist in the resource
-              result[0] = ctx.createFailureStatus();
+              elementId = attValue.replace("hlink://", "");
+              isElementExist = false; 
               break;
             }
           }
         }
       }
     }
+    
+    @Override
+    public void characters(char ch[], int start, int length) throws SAXException {
+      String string = new String(ch, start, length);
+      elementValue.append(string);
+    }
+
+    @Override
+    public void endElement(String uri, String localName, String qName) throws SAXException {
+      // a tag
+      if ((qName.equalsIgnoreCase(IConstantValidation.XHTML_A_TAG)) && !isElementExist) {
+        String value = elementValue.toString();
+        value = value.replaceAll("\\s+", " "); //$NON-NLS-1$//$NON-NLS-2$
+        String elementName = CapellaElementExt.getName(capellaElement);
+        String failureMessage = "(Hyperlink) The element named “" + value +
+        						"” (id: "+ elementId +
+        						") can not be found for the rich text description of the element " + elementName;
+        result.add(ctx.createFailureStatus(failureMessage));
+        // re-init for new element to be found or not
+        isElementExist = true;
+        // empty the value and the id
+        elementValue = new StringBuilder();
+        elementId = "";
+      }
+    }
+    
   }
 
   protected Logger logger = ReportManagerRegistry.getInstance().subscribe(IReportManagerDefaultComponents.VALIDATION);
@@ -82,7 +119,7 @@ public class CapellaElementInDescriptionExistanceCheck extends AbstractValidatio
   @Override
   public IStatus validate(final IValidationContext ctx) {
     EObject target = ctx.getTarget();
-    final IStatus[] result = { null };
+    final List<IStatus> result = new ArrayList<>();
     if ((null != target) && (target instanceof CapellaElement)) {
       final CapellaElement capellaElement = (CapellaElement) target;
       String description = capellaElement.getDescription();
@@ -125,11 +162,18 @@ public class CapellaElementInDescriptionExistanceCheck extends AbstractValidatio
         }
       }
     }
-
-    if (null != result[0]) {
-      return ctx.createFailureStatus("HyperLinks to capella element or diagram does not exist in model any more"); //$NON-NLS-1$
+    
+    IStatus returnedStatus = null;
+    if (result.isEmpty()) {
+      returnedStatus = ctx.createSuccessStatus();
+    } else {
+      if (result.size() == 1) {
+        returnedStatus = result.get(0);
+      } else {
+        returnedStatus = ConstraintStatus.createMultiStatus(ctx, result);
+      }
     }
-    return ctx.createSuccessStatus();
+    return returnedStatus;
   }
 
 
