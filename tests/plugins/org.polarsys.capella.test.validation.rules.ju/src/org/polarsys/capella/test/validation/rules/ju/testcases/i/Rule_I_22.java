@@ -48,16 +48,16 @@ public class Rule_I_22 extends AbstractRulesOnIntegrityTest {
 	 */
 	protected List<String> getScopeDefinition() {
 		return Arrays.asList(new String[] {
-				"21f79e9a-700b-4673-9599-58c738a208d2",
-				"58fcff83-081f-49e8-b64d-e503042642ab" });
-	}
+        "21f79e9a-700b-4673-9599-58c738a208d2", "58fcff83-081f-49e8-b64d-e503042642ab",
+        "a9972f3e-dcb8-4d59-a0db-56c14a13890f" });
+  }
 
 	/**
 	 * @see org.polarsys.capella.test.validation.rules.ju.testcases.ValidationRuleTestCase#getOracleDefinitions()
 	 * @generated
 	 */
-	protected List<OracleDefinition> getOracleDefinitions() {
-		return Arrays.asList(new OracleDefinition[] { new OracleDefinition(
-				"58fcff83-081f-49e8-b64d-e503042642ab", 1) });
-	}
+  protected List<OracleDefinition> getOracleDefinitions() {
+    return Arrays.asList(new OracleDefinition[] { new OracleDefinition("58fcff83-081f-49e8-b64d-e503042642ab", 1),
+        new OracleDefinition("a9972f3e-dcb8-4d59-a0db-56c14a13890f", 1) });
+  }
 }

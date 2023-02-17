@@ -23,6 +23,8 @@ import javax.xml.parsers.SAXParserFactory;
 
 import org.apache.log4j.Logger;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.sirius.diagram.DDiagram;
+import org.eclipse.sirius.viewpoint.DRepresentationDescriptor;
 import org.polarsys.capella.common.mdsofa.common.constant.ICommonConstants;
 import org.polarsys.capella.common.tools.report.config.registry.ReportManagerRegistry;
 import org.polarsys.capella.common.tools.report.util.IReportManagerDefaultComponents;
@@ -55,16 +57,37 @@ public class WriteCapellaElementDescriptionSAXParser {
   }
 
   protected boolean managedObject(EObject object) {
-    return (object instanceof CapellaElement);
+    return (object instanceof CapellaElement || object instanceof DDiagram);
+  }
+
+  private String getDescription(EObject object) {
+    if (object instanceof CapellaElement) {
+      return ((CapellaElement) object).getDescription();
+    }
+
+    if (object instanceof DRepresentationDescriptor) {
+      return ((DRepresentationDescriptor) object).getDocumentation();
+    }
+
+    return null;
+  }
+
+  private void setDescription(EObject object, String description) {
+    if (object instanceof CapellaElement) {
+      ((CapellaElement) object).setDescription(description);
+    }
+
+    if (object instanceof DRepresentationDescriptor) {
+      ((DRepresentationDescriptor) object).setDocumentation(description);
+    }
   }
 
   public boolean updateDescription(List<EObject> modelElements) {
     Iterator<EObject> iterator = modelElements.iterator();
     while (iterator.hasNext()) {
       EObject object = iterator.next();
-      if (object instanceof CapellaElement) {
-        final CapellaElement capellaElement = (CapellaElement) object;
-        String elementDescription = capellaElement.getDescription();
+      if (object instanceof CapellaElement || object instanceof DRepresentationDescriptor) {
+        String elementDescription = getDescription(object);
         if ((null != elementDescription) && !elementDescription.isEmpty()) {
           currentElementDescription = new StringBuilder();
           // for each description, start from scratch
@@ -137,7 +160,7 @@ public class WriteCapellaElementDescriptionSAXParser {
                     if ((null != attValue) && !attValue.isEmpty() && qName.equalsIgnoreCase(IConstantValidation.XHTML_A_TAG)
                         && attName.equalsIgnoreCase(IConstantValidation.XHTML_HREF_ATT)) {
 
-                      EObject eObject = SaxParserHelper.getEObjectFromHrefAttribute(capellaElement, attValue);
+                      EObject eObject = SaxParserHelper.getEObjectFromHrefAttribute(object, attValue);
 
                       if (managedObject(eObject)) {
                         // if ok default value will be added else the value will be updated
@@ -231,7 +254,7 @@ public class WriteCapellaElementDescriptionSAXParser {
           // remove root_end
           result = result.replaceAll(IConstantValidation.ROOT_NODE_END, ICommonConstants.EMPTY_STRING);
           // set description
-          capellaElement.setDescription(result);
+          setDescription(object, result);
         }
       }
     }
