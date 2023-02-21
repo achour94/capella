@@ -141,7 +141,7 @@
                      class="CapellaElement">
                </target>
                <description>
-                  This rule ensures that hyperLinks to non existing capella element or diagram are removed from the description.
+                  This rule ensures that hyperLinks to non existing capella element or diagram are removed or converted to text from the description.
                </description>
             </constraint>
             <constraint
@@ -183,7 +183,7 @@ Tip: If some cases are detected (validation markers), it is recommended to check
                <description>
                   This rule ensures that images, used in rich text editor, for attributes such as Capella elements description or diagram description, can be found.
 
-Tip: If some cases are detected (validation markers), it is recommended to check the existence of the image and move it in the right folder according to the used expected image path location. Once done, you can restart the validation. If you have still validation markers, then use the &quot;Quick fix&quot; tool to select a new image.
+Tip: If some cases are detected (validation markers), it is recommended to check the existence of the image and move it in the right folder according to the used expected image path location. Once done, you can restart the validation. If you have still validation markers, then use the &quot;Quick fix&quot; tool to select a new image or you can remove those images from the description.
                </description>
             </constraint>
          </constraints>
