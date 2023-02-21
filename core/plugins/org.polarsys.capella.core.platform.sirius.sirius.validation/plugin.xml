@@ -59,6 +59,14 @@
          </rules>
       </resolver>
       <resolver
+            class="org.polarsys.capella.core.platform.sirius.sirius.validation.ddiagram.ImagePathRemoveResolver"
+            desc="%quickFix.ImagePath_RemoveResolver.desc"
+            label="%quickFix.ImagePath_RemoveResolver.label">
+         <rules
+               ruleId="I_47">
+         </rules>
+      </resolver>
+      <resolver
             class="org.polarsys.capella.core.platform.sirius.sirius.validation.ddiagram.ImagePathMassResolver"
             desc="%quickFix.ImagePath_MassResolver.desc"
             label="%quickFix.ImagePath_MassResolver.label">
