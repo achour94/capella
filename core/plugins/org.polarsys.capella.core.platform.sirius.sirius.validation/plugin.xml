@@ -26,9 +26,18 @@
       </resolver>
       <resolver
             class="org.polarsys.capella.core.platform.sirius.sirius.validation.ddiagram.I_23_Resolver"
-            desc="%quickFix.I_23_Resolver.desc"
+            desc="%quickFix.I_23_DeleteResolver.desc"
             icon="icons/search16.gif"
-            label="%quickFix.I_23_Resolver.label">
+            label="%quickFix.I_23_DeleteResolver.label">
+         <rules
+               ruleId="I_23">
+         </rules>
+      </resolver>
+      <resolver
+            class="org.polarsys.capella.core.platform.sirius.sirius.validation.ddiagram.I_23_ConvertResolver"
+            desc="%quickFix.I_23_ConvertResolver.desc"
+            icon="icons/search16.gif"
+            label="%quickFix.I_23_ConvertResolver.label">
          <rules
                ruleId="I_23">
          </rules>
