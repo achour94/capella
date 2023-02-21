@@ -22,6 +22,7 @@ import javax.xml.parsers.SAXParserFactory;
 
 import org.apache.log4j.Logger;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.sirius.viewpoint.DRepresentationDescriptor;
 import org.polarsys.capella.common.mdsofa.common.constant.ICommonConstants;
 import org.polarsys.capella.common.tools.report.config.registry.ReportManagerRegistry;
 import org.polarsys.capella.common.tools.report.util.IReportManagerDefaultComponents;
@@ -47,13 +48,34 @@ public class DeleteInValidHyperLinkInDescription {
     _currentElementDescription = null;
   }
 
-  public boolean updateDescription(List<EObject> modelElements) {
+  private String getDescription(EObject object) {
+    if (object instanceof CapellaElement) {
+      return ((CapellaElement) object).getDescription();
+    }
+
+    if (object instanceof DRepresentationDescriptor) {
+      return ((DRepresentationDescriptor) object).getDocumentation();
+    }
+
+    return null;
+  }
+
+  private void setDescription(EObject object, String description) {
+    if (object instanceof CapellaElement) {
+      ((CapellaElement) object).setDescription(description);
+    }
+
+    if (object instanceof DRepresentationDescriptor) {
+      ((DRepresentationDescriptor) object).setDocumentation(description);
+    }
+  }
+  
+  public boolean updateDescription(List<EObject> modelElements, String linkId) {
     Iterator<EObject> iterator = modelElements.iterator();
     while (iterator.hasNext()) {
       EObject object = iterator.next();
-      if (object instanceof CapellaElement) {
-        final CapellaElement capellaElement = (CapellaElement) object;
-        String description = capellaElement.getDescription();
+      if (object instanceof CapellaElement || object instanceof DRepresentationDescriptor) {
+        String description = getDescription(object);
         if ((null != description) && !description.isEmpty()) {
           _currentElementDescription = new StringBuilder();
           // for each description, start from scratch
@@ -79,6 +101,7 @@ public class DeleteInValidHyperLinkInDescription {
               boolean valueToAdd = false;
               // merge the value
               StringBuilder elementValue = new StringBuilder();
+              String elementId;
 
               /**
                * {@inheritDoc}
@@ -92,7 +115,7 @@ public class DeleteInValidHyperLinkInDescription {
 
               @Override
               public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-                if (elementIsNull) {
+                if (elementIsNull && elementId.equals(linkId)) {
                   elementValue = new StringBuilder(0);
                   valueToAdd = false;
                   return;
@@ -116,14 +139,16 @@ public class DeleteInValidHyperLinkInDescription {
                 if (!qName.equalsIgnoreCase(IConstantValidation.XHTML_A_TAG)) {
                   addElementToResult(qName, attributes);
                 } else {
+                  
                   for (int i = 0; i < attributes.getLength(); i++) {
                     // above filter state the image source (which could be relative or absolute path)
                     String attValue = attributes.getValue(i);
                     String attName = attributes.getQName(i);
+                    elementId = attValue.replace("hlink://", "");
                     if ((null != attValue) && !attValue.isEmpty() && qName.equalsIgnoreCase(IConstantValidation.XHTML_A_TAG)
                         && attName.equalsIgnoreCase(IConstantValidation.XHTML_HREF_ATT)) {
 
-                      EObject eObject = SaxParserHelper.getEObjectFromHrefAttribute(capellaElement, attValue);
+                      EObject eObject = SaxParserHelper.getEObjectFromHrefAttribute(object, attValue);
                       if (null == eObject) {
                         // if ok default value will be added else the value will be updated
                         elementIsNull = true;
@@ -131,9 +156,9 @@ public class DeleteInValidHyperLinkInDescription {
                       }
                     }
                   }
-                }
-                if (!elementIsNull) {
-                  addElementToResult(qName, attributes);
+                  if (!elementIsNull || (!elementId.isEmpty() && !elementId.equals(linkId))) {
+                	  addElementToResult(qName, attributes);
+                  }
                 }
 
               }
@@ -172,7 +197,7 @@ public class DeleteInValidHyperLinkInDescription {
               @Override
               public void endElement(String uri, String localName, String qName) throws SAXException {
 
-                if (!elementIsNull) {
+                if (!elementIsNull || (!elementId.isEmpty() && !elementId.equals(linkId))) {
                   // add break element
                   if (qName.equals(IConstantValidation.XHTML_BREAK_ELEMENT)) {
                     __description.append(IConstantValidation.XHTML_BREAK_ELEMENT_END);
@@ -225,7 +250,7 @@ public class DeleteInValidHyperLinkInDescription {
           // remove root_end
           result = result.replaceAll(IConstantValidation.ROOT_NODE_END, ICommonConstants.EMPTY_STRING);
           // set description
-          capellaElement.setDescription(result);
+          setDescription(object, result);
         }
       }
     }
