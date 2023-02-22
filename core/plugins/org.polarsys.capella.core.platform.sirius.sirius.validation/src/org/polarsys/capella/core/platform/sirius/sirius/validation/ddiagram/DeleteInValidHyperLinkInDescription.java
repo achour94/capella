@@ -144,14 +144,15 @@ public class DeleteInValidHyperLinkInDescription {
                     // above filter state the image source (which could be relative or absolute path)
                     String attValue = attributes.getValue(i);
                     String attName = attributes.getQName(i);
-                    elementId = attValue.replace("hlink://", "");
                     if ((null != attValue) && !attValue.isEmpty() && qName.equalsIgnoreCase(IConstantValidation.XHTML_A_TAG)
                         && attName.equalsIgnoreCase(IConstantValidation.XHTML_HREF_ATT)) {
+                      
 
                       EObject eObject = SaxParserHelper.getEObjectFromHrefAttribute(object, attValue);
                       if (null == eObject) {
                         // if ok default value will be added else the value will be updated
                         elementIsNull = true;
+                        elementId = attValue.replace("hlink://", "");
                         break;
                       }
                     }

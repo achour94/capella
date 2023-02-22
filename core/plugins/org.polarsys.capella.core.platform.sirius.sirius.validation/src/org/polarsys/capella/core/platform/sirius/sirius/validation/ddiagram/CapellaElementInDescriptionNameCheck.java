@@ -16,6 +16,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.SAXParser;
@@ -28,6 +29,7 @@ import org.eclipse.emf.validation.IValidationContext;
 import org.eclipse.emf.validation.model.ConstraintStatus;
 import org.eclipse.sirius.business.api.dialect.DialectManager;
 import org.eclipse.sirius.business.api.session.Session;
+import org.eclipse.sirius.diagram.DDiagram;
 import org.eclipse.sirius.viewpoint.DRepresentation;
 import org.eclipse.sirius.viewpoint.DRepresentationDescriptor;
 import org.polarsys.capella.common.tools.report.config.registry.ReportManagerRegistry;
@@ -93,6 +95,8 @@ public class CapellaElementInDescriptionNameCheck extends AbstractValidationRule
           EObject elementFound = null;
           // value of an element
           StringBuilder elementValue = new StringBuilder();
+          private String elementId;
+          private List<String> alreadyParsedLinks = new ArrayList<>();
 
           @Override
           public void startElement(String uri, String localName, String qName, Attributes attributes)
@@ -101,6 +105,7 @@ public class CapellaElementInDescriptionNameCheck extends AbstractValidationRule
             if (qName.equalsIgnoreCase(IConstantValidation.XHTML_A_TAG)) {
               // empty the elementValue at the start of the a tag
               elementValue = new StringBuilder(0);
+              elementId = "";
               for (int i = 0; i < attributes.getLength(); i++) {
                 // above filter state the image source (which could be relative or absolute path)
                 String attValue = attributes.getValue(i);
@@ -114,6 +119,7 @@ public class CapellaElementInDescriptionNameCheck extends AbstractValidationRule
                   if ((null != eObject) && ((eObject instanceof CapellaElement)
                       || (eObject instanceof DRepresentationDescriptor) || (eObject instanceof DRepresentation))) {
                     elementFound = eObject;
+                    elementId = attValue.replace("hlink://", "");
                     // once found discontinue
                     break;
                   }
@@ -139,20 +145,42 @@ public class CapellaElementInDescriptionNameCheck extends AbstractValidationRule
           public void endElement(String uri, String localName, String qName) throws SAXException {
             // a tag
             if ((qName.equalsIgnoreCase(IConstantValidation.XHTML_A_TAG)) && (null != elementFound)) {
+              boolean isDiagram = elementFound instanceof DDiagram;
               String name = getName(elementFound);
               String value = elementValue.toString();
               value = value.replaceAll("\\s+", " "); //$NON-NLS-1$//$NON-NLS-2$
               if (!name.equals(value)) {
-                String message = "(Hyperlink) The model element named \"" + value
-                    + "\" (found in the rich text description of " + getName(element)
-                    + ") is not up to date.";  
-                failureMessages.add(ConstraintStatus.createStatus(ctx, element, ctx.getResultLocus(), "{0}", message));
-                
+            	  if(!alreadyParsedLinks.contains(elementId)) {
+            		  alreadyParsedLinks.add(elementId);
+            		  String message = "(Hyperlink) The " + (isDiagram ? "diagram" : "model") 
+            				  + " element named \"" + value
+                              + "\" (id: "+ elementId 
+                              + ") found in the rich text description of " + getName(element)
+                              + " is not up to date.";
+            		  failureMessages.add(ConstraintStatus.createStatus(ctx, element, ctx.getResultLocus(), "{0}", message));			  
+            	  }else { 
+            		  String elementName = value;
+            		  List<IStatus> updatedResult = failureMessages.stream()
+      							.map(sts -> {
+      								if(sts.getMessage().contains(elementId)) {
+      									String message = "(Hyperlink) The model/diagram elements named \"" + elementName
+      			                              + ", ...\" (id: "+ elementId 
+      			                              + ") found in the rich text description of " + getName(element)
+      			                              + " are not up to date.";
+      									return ConstraintStatus.createStatus(ctx, element, ctx.getResultLocus(), "{0}", message);
+      								}
+      								return sts;
+      							})
+      							.collect(Collectors.toList());
+            		  failureMessages.clear();
+            		  failureMessages.addAll(updatedResult);
+            	  }
               }
               // re-init for new element to be found
               elementFound = null;
               // empty the value
               elementValue = new StringBuilder();
+              elementId = "";
             }
           }
 

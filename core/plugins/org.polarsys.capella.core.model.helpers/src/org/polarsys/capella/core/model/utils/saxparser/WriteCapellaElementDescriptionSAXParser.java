@@ -82,7 +82,7 @@ public class WriteCapellaElementDescriptionSAXParser {
     }
   }
 
-  public boolean updateDescription(List<EObject> modelElements) {
+  public boolean updateDescription(List<EObject> modelElements, String linkId) {
     Iterator<EObject> iterator = modelElements.iterator();
     while (iterator.hasNext()) {
       EObject object = iterator.next();
@@ -113,6 +113,7 @@ public class WriteCapellaElementDescriptionSAXParser {
               boolean valueToAdd = false;
               // merge the value
               StringBuilder elementValue = new StringBuilder();
+              String elementId;
 
               /**
                * {@inheritDoc}
@@ -135,6 +136,7 @@ public class WriteCapellaElementDescriptionSAXParser {
                   valueToAdd = false;
                 }
                 elementValue = new StringBuilder(0);
+                
 
                 // if qName is break
                 // an endElement will add the tag value to the result
@@ -165,6 +167,7 @@ public class WriteCapellaElementDescriptionSAXParser {
                       if (managedObject(eObject)) {
                         // if ok default value will be added else the value will be updated
                         elementFound = eObject;
+                        elementId = attValue.replace("hlink://", "");
                       }
                     }
                     // add other attribute
@@ -201,7 +204,7 @@ public class WriteCapellaElementDescriptionSAXParser {
                   if ((null != elementFound)) {
                     String name = getName(elementFound);
                     value = value.replaceAll("\\s+", " "); //$NON-NLS-1$//$NON-NLS-2$
-                    if (!name.equals(value)) {
+                    if (!name.equals(value) && (!elementId.isEmpty() && elementId.equals(linkId))) {
                       if (managedObject(elementFound)) {
                         flag = true;
                         // add the name of the capella element or diagram
@@ -225,6 +228,7 @@ public class WriteCapellaElementDescriptionSAXParser {
 
                 // empty the element value
                 elementValue = new StringBuilder(0);
+                elementId = "";
 
               }
 

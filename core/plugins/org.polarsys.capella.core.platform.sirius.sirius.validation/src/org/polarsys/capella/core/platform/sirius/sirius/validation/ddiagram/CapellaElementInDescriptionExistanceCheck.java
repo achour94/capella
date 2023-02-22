@@ -122,7 +122,7 @@ public class CapellaElementInDescriptionExistanceCheck extends AbstractValidatio
 	    String elementName = getName(element);
 		if(!alreadyParsedLinks.contains(elementId)) {
 			alreadyParsedLinks.add(elementId);
-			String failureMessage = "(Hyperlink) The element named “" + value +
+			String failureMessage = "(Hyperlink) The model/diagram element named “" + value +
 					"” (id: "+ elementId +
 					") can not be found for the rich text description of the element " + elementName;
 			result.add(ConstraintStatus.createStatus(ctx, element, ctx.getResultLocus(), "{0}", failureMessage));			  
@@ -131,7 +131,7 @@ public class CapellaElementInDescriptionExistanceCheck extends AbstractValidatio
 							.map(sts -> {
 								if(sts.getMessage().contains(elementId)) {
 									String name = extractName(sts.getMessage());
-									String failureMessage = "(Hyperlink) The elements named “" + name +
+									String failureMessage = "(Hyperlink) The model/diagram elements named “" + name +
 											", ...” (id: "+ elementId +
 											") can not be found for the rich text description of the element " + elementName;
 									return ConstraintStatus.createStatus(ctx, element, ctx.getResultLocus(), "{0}", failureMessage);
@@ -221,18 +221,17 @@ public class CapellaElementInDescriptionExistanceCheck extends AbstractValidatio
       String description = capellaElement.getDescription();
       if ((null != description) && !description.isEmpty()) {
     	  result.addAll(validateElement(capellaElement, description, ctx));
-    	  
-    	  Session.of(target).ifPresent(session -> {
-    	        Collection<DRepresentationDescriptor> representationDescriptors = DialectManager.INSTANCE
-    	            .getRepresentationDescriptors(target, session);
-    	        for (DRepresentationDescriptor dRepresentationDescriptor : representationDescriptors) {
-    	          String documentation = dRepresentationDescriptor.getDocumentation();
-				  List<IStatus> currentRepresentationStatus = validateElement(dRepresentationDescriptor,
-    	              documentation, ctx);
-    	          result.addAll(currentRepresentationStatus);
-    	        }
-    	      });
       }
+	  Session.of(target).ifPresent(session -> {
+        Collection<DRepresentationDescriptor> representationDescriptors = DialectManager.INSTANCE
+            .getRepresentationDescriptors(target, session);
+        for (DRepresentationDescriptor dRepresentationDescriptor : representationDescriptors) {
+          String documentation = dRepresentationDescriptor.getDocumentation();
+		  List<IStatus> currentRepresentationStatus = validateElement(dRepresentationDescriptor,
+              documentation, ctx);
+          result.addAll(currentRepresentationStatus);
+        }
+      });
     }
     
     IStatus returnedStatus = null;
