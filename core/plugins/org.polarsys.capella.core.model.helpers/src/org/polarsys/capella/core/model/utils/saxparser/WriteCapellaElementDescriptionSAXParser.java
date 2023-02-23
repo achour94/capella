@@ -178,6 +178,9 @@ public class WriteCapellaElementDescriptionSAXParser {
                     description.append(attValue);
                     description.append(IConstantValidation.DOUBLE_QUOTES);
                   }
+                  if (qName.equals("img")) {
+                	  description.append("/");
+                  }
                   // close start Element
                   description.append(IConstantValidation.GREATER_THAN);
                 }
@@ -188,7 +191,9 @@ public class WriteCapellaElementDescriptionSAXParser {
                */
               @Override
               public void endElement(String uri, String localName, String qName) throws SAXException {
-
+            	if (qName.equals("img")) {
+            	  return;
+                }
                 // break element
                 if (qName.equals(IConstantValidation.XHTML_BREAK_ELEMENT)) {
                   description.append(IConstantValidation.XHTML_BREAK_ELEMENT_END);
