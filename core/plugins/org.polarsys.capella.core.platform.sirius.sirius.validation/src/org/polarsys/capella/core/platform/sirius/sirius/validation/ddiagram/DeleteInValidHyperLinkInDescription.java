@@ -187,6 +187,9 @@ public class DeleteInValidHyperLinkInDescription {
                     __description.append(attValue);
                     __description.append(IConstantValidation.DOUBLE_QUOTES);
                   }
+                  if (qName.equals("img")) {
+                	  __description.append("/");
+                  }
                   // close start Element
                   __description.append(IConstantValidation.GREATER_THAN);
                 }
@@ -197,7 +200,9 @@ public class DeleteInValidHyperLinkInDescription {
                */
               @Override
               public void endElement(String uri, String localName, String qName) throws SAXException {
-
+        	    if (qName.equals("img")) {
+            	  return;
+                }
                 if (!elementIsNull || (!elementId.isEmpty() && !elementId.equals(linkId))) {
                   // add break element
                   if (qName.equals(IConstantValidation.XHTML_BREAK_ELEMENT)) {
@@ -220,6 +225,7 @@ public class DeleteInValidHyperLinkInDescription {
                 if (elementIsNull && qName.equalsIgnoreCase(IConstantValidation.XHTML_A_TAG)) {
                   // re-initialize
                   elementIsNull = false;
+                  elementId = "";
                 }
                 // empty the element value
                 elementValue = new StringBuilder(0);

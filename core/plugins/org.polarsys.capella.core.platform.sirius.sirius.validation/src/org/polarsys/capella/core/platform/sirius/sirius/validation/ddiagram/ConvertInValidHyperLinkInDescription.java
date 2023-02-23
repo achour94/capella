@@ -116,11 +116,11 @@ public class ConvertInValidHyperLinkInDescription {
 
               @Override
               public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-                if (elementIsNull && elementId.equals(linkId)) {
-                  elementValue = new StringBuilder(0);
-                  valueToAdd = false;
-                  return;
-                }
+//                if (elementIsNull && elementId.equals(linkId)) {
+//                  elementValue = new StringBuilder(0);
+//                  valueToAdd = false;
+//                  return;
+//                }
                 // startElement can be called just after value is calculated for nested element
                 // example: <p> value1 <a href="hvalue"> value2 </a></p>
                 // so need to add the value to the result before starting new element
@@ -189,6 +189,9 @@ public class ConvertInValidHyperLinkInDescription {
                     __description.append(attValue);
                     __description.append(IConstantValidation.DOUBLE_QUOTES);
                   }
+                  if (qName.equals("img")) {
+                	  __description.append("/");
+                  }
                   // close start Element
                   __description.append(IConstantValidation.GREATER_THAN);
                 }
@@ -199,7 +202,9 @@ public class ConvertInValidHyperLinkInDescription {
                */
               @Override
               public void endElement(String uri, String localName, String qName) throws SAXException {
-
+            	  if (qName.equals("img")) {
+            		  return;
+            	  }
             	  // add break element
             	  if (qName.equals(IConstantValidation.XHTML_BREAK_ELEMENT)) {
             		  __description.append(IConstantValidation.XHTML_BREAK_ELEMENT_END);
@@ -214,16 +219,17 @@ public class ConvertInValidHyperLinkInDescription {
             	  
             	  // add end tab
             	  __description.append(IConstantValidation.CLOSE_TAB_PREFIX);
-            	  if (!elementIsNull || (!elementId.isEmpty() && !elementId.equals(linkId))) {
-            		  __description.append(qName);
-            	  } else {
+            	  if(qName.equalsIgnoreCase(IConstantValidation.XHTML_A_TAG) && elementIsNull && !elementId.isEmpty() && elementId.equals(linkId)) {
             		  __description.append("span");            		  
+            	  } else {
+            		  __description.append(qName);            		  
             	  }
             	  __description.append(IConstantValidation.GREATER_THAN);
 
                 if (elementIsNull && qName.equalsIgnoreCase(IConstantValidation.XHTML_A_TAG)) {
                   // re-initialize
                   elementIsNull = false;
+                  elementId = "";
                 }
                 // empty the element value
                 elementValue = new StringBuilder(0);
